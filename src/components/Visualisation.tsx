@@ -1,7 +1,7 @@
 "use client";
 
 import { range, scaleLinear, select } from "d3";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type VisualisationProps = {};
 
@@ -13,8 +13,8 @@ type VisualisationProps = {};
 const yExtent = [-1.2, 0];
 const xExtent = [-1.9, 0.2];
 
-const xResolution = 0.001;
-const yResolution = 0.001;
+const xResolution = 0.01;
+const yResolution = 0.01;
 
 const yPoints = range(yExtent[0], yExtent[1], yResolution);
 const xPoints = range(xExtent[0], xExtent[1], xResolution);
@@ -34,66 +34,65 @@ const mandelbrot = (c: { r: number; i: number }) => {
   return n;
 };
 
-const draw = ({
-  el,
-  height,
-  width,
-}: {
-  el: HTMLCanvasElement;
-  height: number;
-  width: number;
-}) => {
-  const colorScale = scaleLinear().domain([0, 100]).range([0, 360]);
-
-  const xScale = scaleLinear().domain(xExtent).range([0, width]);
-  const yScale = scaleLinear().domain(yExtent).range([0, height]);
-
-  const pixelHeight = height / yPoints.length;
-  const pixelWidth = width / xPoints.length;
-
-  const dataForDisplay = xPoints.map((r, xi) =>
-    yPoints.map((i, xj) => {
-      const x = xi * pixelWidth;
-      const y = xj * pixelHeight;
-      return {
-        x: xScale(r),
-        y: yScale(i),
-        n: mandelbrot({ r, i }),
-      };
-    })
-  );
-
-  const ctx = el.getContext("2d");
-  if (!ctx) return;
-  ctx.clearRect(0, 0, width, height);
-  dataForDisplay.forEach((row) => {
-    row.forEach((d) => {
-      if (d.n === 100) {
-        return;
-      }
-      const hue = colorScale(d.n);
-      ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
-      ctx.fillRect(d.x, d.y, pixelWidth, pixelHeight);
-    });
-  });
-};
+const colorScale = scaleLinear().domain([0, 100]).range([0, 360]);
 
 export const Visualisation = (_props: VisualisationProps) => {
-  const ref = useRef<HTMLCanvasElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const [svg, setSvg] = useState<null | SVGSVGElement>(null);
   const width = window.innerWidth;
   const height = window.innerHeight;
   useEffect(() => {
     if (!ref.current) return;
-    draw({ height, el: ref.current, width });
-  }, [ref, width, height]);
-  return (
-    <canvas
-      // className="border-red-100 border-4"
-      height={height}
-      width={width}
-      ref={ref}
-    />
-  );
+    // delete the children
+    while (ref.current.firstChild) {
+      ref.current.removeChild(ref.current.firstChild);
+    }
+    // append svg
+    const newSvg = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "svg"
+    );
+    newSvg.setAttribute("width", width.toString());
+    newSvg.setAttribute("height", height.toString());
+    ref.current.appendChild(newSvg);
+    setSvg(newSvg);
+  }, [ref, height, width]);
+
+  useEffect(() => {
+    if (!svg) return;
+    const xScale = scaleLinear().domain(xExtent).range([0, width]);
+    const yScale = scaleLinear().domain(yExtent).range([0, height]);
+    const dataForDisplay = xPoints
+      .map((r, xi) =>
+        yPoints.map((i, xj) => {
+          const x = xi;
+          const y = xj;
+          return {
+            x: xScale(r),
+            y: yScale(i),
+            n: mandelbrot({ r, i }),
+          };
+        })
+      )
+      .flat();
+    const data = select(svg).selectAll("rect").data(dataForDisplay);
+    data
+      .join("rect")
+      .attr("x", (d) => d.x)
+      .attr("y", (d) => d.y)
+      .attr("width", width / xPoints.length)
+      .attr("height", height / yPoints.length)
+      .attr("id", (d) => `${d.x}-${d.y}`)
+      .attr("fill", (d) => {
+        if (d.n === 100) {
+          return "black";
+        }
+        const hue = colorScale(d.n);
+        return `hsl(${hue}, 100%, 50%)`;
+      });
+  }, [svg, height, width]);
+
+  return <div ref={ref}></div>;
 };
 
 export default Visualisation;
