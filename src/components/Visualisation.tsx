@@ -11,10 +11,10 @@ type VisualisationProps = {};
  */
 
 const yExtent = [-1.2, 0];
-const xExtent = [-0.9, 0.2];
+const xExtent = [-1.9, 0.2];
 
-const xResolution = 0.01;
-const yResolution = 0.01;
+const xResolution = 0.001;
+const yResolution = 0.001;
 
 const yPoints = range(yExtent[0], yExtent[1], yResolution);
 const xPoints = range(xExtent[0], xExtent[1], xResolution);
@@ -88,7 +88,7 @@ export const Visualisation = (_props: VisualisationProps) => {
   }, [ref, width, height]);
   return (
     <canvas
-      className="border-red-100 border-4"
+      // className="border-red-100 border-4"
       height={height}
       width={width}
       ref={ref}
