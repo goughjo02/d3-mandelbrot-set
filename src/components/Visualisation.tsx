@@ -44,6 +44,8 @@ const resolutions = {
   "way too high": 1500,
 } as const;
 
+const seenInfoMessageKey = "seenInfoMessage";
+
 export const Visualisation = (_props: VisualisationProps) => {
   const tooltipId = useId();
   const [isDragging, setIsDragging] = useState(false);
@@ -61,6 +63,11 @@ export const Visualisation = (_props: VisualisationProps) => {
   const desiredYPixels = Math.min(resolutions[resolution], height);
   const xResolution = (xExtent[1] - xExtent[0]) / desiredXPixels;
   const yResolution = (yExtent[1] - yExtent[0]) / desiredYPixels;
+
+  const seenInfoMessage = localStorage.getItem(seenInfoMessageKey);
+  const [showInfoMessage, setShowInfoMessage] = useState(!seenInfoMessage);
+  const [dontShowInfoMessageAgain, setDontShowInfoMessageAgain] =
+    useState(false);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -211,6 +218,73 @@ export const Visualisation = (_props: VisualisationProps) => {
           ))}
         </select>
       </div>
+      {showInfoMessage && (
+        <div className="absolute top-0 right-0 h-full w-full flex justify-center items-center">
+          <div className="bg-white p-4 rounded text-black">
+            <h1 className="text-2xl font-bold">Mandelbrot Set</h1>
+            <p>
+              This is a visualisation of the Mandelbrot set. The Mandelbrot set
+              is the set of complex numbers c for which the function f_c(z) =
+              z^2 + c does not diverge when iterated from z = 0, i.e., for which
+              the sequence f_c(0), f_c(f_c(0)), etc., remains bounded in
+              absolute value.
+            </p>
+            <p>
+              The colour of each pixel is determined by the number of iterations
+              it takes for the function to diverge. The more iterations it
+              takes, the darker the pixel.
+            </p>
+            <h2 className="text-xl font-bold">Controls</h2>
+            <p>
+              You can zoom in by double clicking on a pixel. You can also change
+              the resolution of the visualisation but{" "}
+              <strong>
+                be careful as setting the resolution too high will likely crash
+                the site in your browser
+              </strong>
+              . I recommend you zoom in to an area of interest while on low
+              resolution, and then go to high resolution.
+            </p>
+            <div className="flex flex-row my-2 items-center justify-center">
+              {!seenInfoMessage && (
+                <>
+                  <label className="mx-2">
+                    Do not show this message on open
+                  </label>
+                  <input
+                    type="checkbox"
+                    className="mx-2 my-1"
+                    onChange={(e) =>
+                      setDontShowInfoMessageAgain(e.target.checked)
+                    }
+                  />{" "}
+                </>
+              )}
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
+                onClick={() => {
+                  setShowInfoMessage(false);
+                  if (dontShowInfoMessageAgain) {
+                    localStorage.setItem(seenInfoMessageKey, "true");
+                  }
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {!showInfoMessage && (
+        <div className="absolute top-0 right-0">
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
+            onClick={() => setShowInfoMessage(true)}
+          >
+            Info
+          </button>
+        </div>
+      )}
     </div>
   );
 };
