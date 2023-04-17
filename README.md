@@ -1,6 +1,6 @@
 # Mandelbrot Set
 
-I trie to visualise the Mandelbrot set using d3.js. It is all client side so it is not very fast. At high resolution it is very slow. I am not sure if it is possible to do it faster. Here are some examples:
+I tried to visualise the Mandelbrot set using d3.js. It is all client side so it is not very fast. At high resolution it is very slow. I am not sure if it is possible to do it faster. Here are some examples:
 
 ![Sample One](/public/og-image.png)
 
@@ -10,13 +10,15 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
+Install deps
+
+```bash
+pnpm install
+```
+
 First, run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
 pnpm dev
 ```
 
