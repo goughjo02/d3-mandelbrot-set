@@ -1,7 +1,7 @@
 "use client";
 
 import { scaleLinear, select } from "d3";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 type VisualisationProps = {};
 
@@ -81,8 +81,14 @@ const draw = ({
 
 export const Visualisation = (_props: VisualisationProps) => {
   const ref = useRef<SVGSVGElement>(null);
-  const width = window.innerWidth;
-  const height = window.innerHeight;
+  const width = useMemo(() => {
+    if (typeof window === "undefined") return 0;
+    return window.innerWidth;
+  }, []);
+  const height = useMemo(() => {
+    if (typeof window === "undefined") return 0;
+    return window.innerHeight;
+  }, []);
   useEffect(() => {
     if (!ref.current) return;
     draw({ height, el: ref.current, width });
