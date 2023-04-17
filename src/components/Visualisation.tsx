@@ -1,7 +1,7 @@
 "use client";
 
 import { range, scaleLinear, select } from "d3";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 type VisualisationProps = {};
 
@@ -10,14 +10,8 @@ type VisualisationProps = {};
  * y axis is the imaginary part of the complex number
  */
 
-const yExtent = [-1.2, 0];
-const xExtent = [-1.9, 0.2];
-
 const xResolution = 0.01;
 const yResolution = 0.01;
-
-const yPoints = range(yExtent[0], yExtent[1], yResolution);
-const xPoints = range(xExtent[0], xExtent[1], xResolution);
 
 const mandelbrot = (c: { r: number; i: number }) => {
   let z = { x: 0, y: 0 };
@@ -37,8 +31,15 @@ const mandelbrot = (c: { r: number; i: number }) => {
 const colorScale = scaleLinear().domain([0, 100]).range([0, 360]);
 
 export const Visualisation = (_props: VisualisationProps) => {
+  const tooltipId = useId();
   const ref = useRef<HTMLDivElement>(null);
   const [svg, setSvg] = useState<null | SVGSVGElement>(null);
+
+  const [yExtent, setYExtent] = useState([-1.2, 1.2]);
+  const [xExtent, setXExtent] = useState([-2.1, 0.7]);
+  // const [yExtent, setYExtent] = useState([-1.2, 0]);
+  // const [xExtent, setXExtent] = useState([-1.9, 0.2]);
+
   const width = window.innerWidth;
   const height = window.innerHeight;
   useEffect(() => {
@@ -56,10 +57,30 @@ export const Visualisation = (_props: VisualisationProps) => {
     newSvg.setAttribute("height", height.toString());
     ref.current.appendChild(newSvg);
     setSvg(newSvg);
-  }, [ref, height, width]);
+    // remove tooltip if exists
+    const tooltip = document.getElementById(tooltipId);
+    if (tooltip) {
+      tooltip.remove();
+    }
+    const newTooltip = document.createElement("math");
+    newTooltip.setAttribute("id", tooltipId);
+    newTooltip.style.position = "absolute";
+    newTooltip.style.display = "none";
+    newTooltip.style.backgroundColor = "black";
+    newTooltip.style.color = "white";
+    newTooltip.style.padding = "5px";
+    newTooltip.style.borderRadius = "5px";
+    newTooltip.style.fontSize = "12px";
+    newTooltip.style.fontFamily = "sans-serif";
+    newTooltip.style.zIndex = "100";
+    ref.current.appendChild(newTooltip);
+  }, [ref, height, width, tooltipId]);
 
   useEffect(() => {
     if (!svg) return;
+    const yPoints = range(yExtent[0], yExtent[1], yResolution);
+    const xPoints = range(xExtent[0], xExtent[1], xResolution);
+
     const xScale = scaleLinear().domain(xExtent).range([0, width]);
     const yScale = scaleLinear().domain(yExtent).range([0, height]);
     const dataForDisplay = xPoints
@@ -71,6 +92,8 @@ export const Visualisation = (_props: VisualisationProps) => {
             x: xScale(r),
             y: yScale(i),
             n: mandelbrot({ r, i }),
+            r,
+            i,
           };
         })
       )
@@ -89,8 +112,18 @@ export const Visualisation = (_props: VisualisationProps) => {
         }
         const hue = colorScale(d.n);
         return `hsl(${hue}, 100%, 50%)`;
+      })
+      .on("mouseover", (e, d) => {
+        const tooltip = document.getElementById(tooltipId);
+        if (!tooltip) return;
+        tooltip.style.display = "block";
+        tooltip.style.left = `${e.clientX + 10}px`;
+        tooltip.style.top = `${e.clientY + 10}px`;
+        const real = Math.round(d.r * 10) / 10;
+        const imaginary = Math.round(d.i * 10) / 10;
+        tooltip.innerHTML = `${real}${imaginary < 0 ? "" : " + "}${imaginary}i`;
       });
-  }, [svg, height, width]);
+  }, [svg, height, width, yExtent, xExtent, tooltipId]);
 
   return <div ref={ref}></div>;
 };
