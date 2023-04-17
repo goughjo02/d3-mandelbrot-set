@@ -41,6 +41,7 @@ const resolutions = {
   high: 500,
   "very high": 700,
   "too high": 1000,
+  "way too high": 1500,
 } as const;
 
 export const Visualisation = (_props: VisualisationProps) => {
@@ -188,16 +189,17 @@ export const Visualisation = (_props: VisualisationProps) => {
 
   return (
     <div ref={ref}>
-      <div className="absolute top-0 left-0">
+      <div className="absolute top-0 left-0 flex flex-col">
         <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
           onClick={reset}
         >
           Reset
         </button>
         {/* select resolution */}
+        <label className="mx-2 my-1">Resolution</label>
         <select
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
           onChange={(e) =>
             setResolution(e.target.value as keyof typeof resolutions)
           }
