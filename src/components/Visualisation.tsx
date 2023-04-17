@@ -245,6 +245,7 @@ export const Visualisation = (_props: VisualisationProps) => {
               . I recommend you zoom in to an area of interest while on low
               resolution, and then go to high resolution.
             </p>
+            <p>Also as far as I can tell, the site will not work on mobile.</p>
             <div className="flex flex-row my-2 items-center justify-center">
               {!seenInfoMessage && (
                 <>
