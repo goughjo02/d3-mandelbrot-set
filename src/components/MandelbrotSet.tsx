@@ -83,6 +83,7 @@ export const MandelbrotSet = () => {
   const [yExtent, setYExtent] = useState<[number, number]>(initialYExtent);
   const [breakoutNumber, setBreakoutNumber] = useState(initialBreakoutNumber);
   const [maxIterations, setMaxIterations] = useState(initialMaxIterations);
+  const [showControls, setShowControls] = useState(false);
 
   const worker = useWorker(createWorker);
 
@@ -292,20 +293,43 @@ export const MandelbrotSet = () => {
     ]
   );
 
-  const setNewMaxIterations = useCallback(
-    function (event: ChangeEvent<HTMLInputElement>) {
-      const newMaxIterations = parseInt(event.target.value);
+  const setNewMaxIterations = useCallback(function (
+    event: ChangeEvent<HTMLInputElement>
+  ) {
+    const newMaxIterations = parseInt(event.target.value);
+    if (!isNaN(newMaxIterations)) {
       setMaxIterations(newMaxIterations);
+    } else {
+      setMaxIterations(0);
+    }
+    setMaxIterations(newMaxIterations);
+  },
+  []);
+
+  const submitNewMaxIterations = useCallback(
+    function (event: FormEvent<HTMLFormElement>) {
+      event.preventDefault();
       setNewParameters({
         newBreakoutNumber: breakoutNumber,
         newXExtent: xExtent,
         newYExtent: yExtent,
-        newMaxIterations,
+        newMaxIterations: maxIterations,
         resolution,
       });
     },
-    [breakoutNumber, resolution, setNewParameters, xExtent, yExtent]
+    [
+      breakoutNumber,
+      maxIterations,
+      resolution,
+      setNewParameters,
+      xExtent,
+      yExtent,
+    ]
   );
+
+  const toggleControls = useCallback(() => {
+    setShowControls((showControls) => !showControls);
+  }, []);
 
   return (
     <div>
@@ -340,56 +364,80 @@ export const MandelbrotSet = () => {
       )}
       {/* show info message on first load */}
       <div className="absolute top-0 left-0 flex flex-col">
-        <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
-          onClick={reset}
-        >
-          Reset
-        </button>
-        {/* select resolution */}
-        <label className="mx-2 my-1">Resolution</label>
-        <select
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
-          onChange={setNewResolution}
-          value={resolution}
-        >
-          {Object.keys(resolutions).map((resolution) => (
-            <option key={resolution} value={resolution}>
-              {resolution}
-            </option>
-          ))}
-        </select>
-        {/* select render element */}
-        <label className="mx-2 my-1">Render Element</label>
-        <select
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
-          onChange={setNewRenderElement}
-          value={renderElement}
-        >
-          <option value="svg">SVG</option>
-          <option value="canvas">Canvas</option>
-        </select>
-        {/* select breakout number */}
-        <form className="mx-2 my-1" onSubmit={submitNewBreakoutNumber}>
-          <label className="mx-2 my-1">Breakout Number</label>
-          <input
+        {showControls ? (
+          <>
+            {/* select resolution */}
+            <label className="mx-2 my-1">Resolution</label>
+            <select
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
+              onChange={setNewResolution}
+              value={resolution}
+            >
+              {Object.keys(resolutions).map((resolution) => (
+                <option key={resolution} value={resolution}>
+                  {resolution}
+                </option>
+              ))}
+            </select>
+            {/* select render element */}
+            <label className="mx-2 my-1">Render Element</label>
+            <select
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
+              onChange={setNewRenderElement}
+              value={renderElement}
+            >
+              <option value="svg">SVG</option>
+              <option value="canvas">Canvas</option>
+            </select>
+            {/* select breakout number */}
+            <form className="mx-2 my-1" onSubmit={submitNewBreakoutNumber}>
+              <label className="mx-2 my-1">Breakout Number</label>
+              <input
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
+                onChange={setNewBreakoutNumber}
+                type="number"
+                value={breakoutNumber}
+              />
+              <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1">
+                Set
+              </button>
+            </form>
+            {/* select max iterations */}
+            <form className="mx-2 my-1" onSubmit={submitNewMaxIterations}>
+              <label className="mx-2 my-1">Max Iterations</label>
+              <input
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
+                onChange={setNewMaxIterations}
+                type="number"
+                value={maxIterations}
+              />
+              <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1">
+                Set
+              </button>
+            </form>
+            <div>
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
+                onClick={reset}
+              >
+                Reset
+              </button>
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
+                onClick={toggleControls}
+              >
+                Hide Controls
+              </button>
+            </div>
+          </>
+        ) : (
+          <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
-            onChange={setNewBreakoutNumber}
-            type="number"
-            value={breakoutNumber}
-          />
-          <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1">
-            Set
+            onClick={toggleControls}
+          >
+            Show Controls
           </button>
-        </form>
-        {/* select max iterations */}
-        <label className="mx-2 my-1">Max Iterations</label>
-        <input
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
-          onChange={setNewMaxIterations}
-          type="number"
-          value={maxIterations}
-        />
+        )}
       </div>
       {showInfoMessage && (
         <div className="absolute top-0 right-0 h-full w-full flex justify-center items-center">
