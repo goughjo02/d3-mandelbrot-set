@@ -78,5 +78,7 @@ export function generateData(params) {
   return {
     data: newDataForDisplay,
     dimensions: { width: xPoints.length, height: yPoints.length },
+    xScale,
+    yScale,
   };
 }
