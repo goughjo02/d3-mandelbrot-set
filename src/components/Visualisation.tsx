@@ -46,6 +46,14 @@ const resolutions = {
 
 const seenInfoMessageKey = "seenInfoMessage";
 
+interface DataPoint {
+  x: number;
+  y: number;
+  n: number;
+  r: number;
+  i: number;
+}
+
 export const Visualisation = (_props: VisualisationProps) => {
   const tooltipId = useId();
   const [isDragging, setIsDragging] = useState(false);
@@ -55,6 +63,12 @@ export const Visualisation = (_props: VisualisationProps) => {
 
   const [yExtent, setYExtent] = useState(initialYExtent);
   const [xExtent, setXExtent] = useState(initialXExtent);
+
+  const [dataForDisplay, setDataForDisplay] = useState<DataPoint[]>([]);
+  const [dimensions, setDimensions] = useState<{
+    width: number;
+    height: number;
+  }>({ width: 0, height: 0 });
 
   const width = window.innerWidth;
   const height = window.innerHeight;
@@ -84,7 +98,6 @@ export const Visualisation = (_props: VisualisationProps) => {
     newSvg.setAttribute("width", width.toString());
     newSvg.setAttribute("height", height.toString());
     ref.current.appendChild(newSvg);
-    setSvg(newSvg);
     // remove tooltip if exists
     const tooltip = document.getElementById(tooltipId);
     if (tooltip) {
@@ -102,6 +115,7 @@ export const Visualisation = (_props: VisualisationProps) => {
     newTooltip.style.fontFamily = "sans-serif";
     newTooltip.style.zIndex = "100";
     ref.current.appendChild(newTooltip);
+    setSvg(newSvg);
   }, [ref, height, width, tooltipId]);
 
   useEffect(() => {
@@ -111,7 +125,7 @@ export const Visualisation = (_props: VisualisationProps) => {
 
     const xScale = scaleLinear().domain(xExtent).range([0, width]);
     const yScale = scaleLinear().domain(yExtent).range([0, height]);
-    const dataForDisplay = xPoints
+    const newDataForDisplay = xPoints
       .map((r, xi) =>
         yPoints.map((i, xj) => {
           const x = xi;
@@ -126,13 +140,22 @@ export const Visualisation = (_props: VisualisationProps) => {
         })
       )
       .flat();
+    setDataForDisplay(newDataForDisplay);
+    setDimensions({
+      width: xPoints.length,
+      height: yPoints.length,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [svg, yExtent, xExtent, yResolution, xResolution]);
+
+  useEffect(() => {
     const data = select(svg).selectAll("rect").data(dataForDisplay);
     data
       .join("rect")
       .attr("x", (d) => d.x)
       .attr("y", (d) => d.y)
-      .attr("width", width / xPoints.length)
-      .attr("height", height / yPoints.length)
+      .attr("width", width / dimensions?.width)
+      .attr("height", height / dimensions?.height)
       .attr("id", (d) => `${d.x}-${d.y}`)
       .attr("fill", (d) => {
         if (d.n === 100) {
@@ -170,16 +193,8 @@ export const Visualisation = (_props: VisualisationProps) => {
         ];
         setNewExtent(newXExtent, newYExtent);
       });
-  }, [
-    svg,
-    height,
-    width,
-    yExtent,
-    xExtent,
-    tooltipId,
-    yResolution,
-    xResolution,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataForDisplay]);
 
   const reset = () => {
     setYExtent(initialYExtent);
