@@ -155,7 +155,7 @@ export const MandelbrotSet = () => {
       xExtent: initialXExtent,
       yExtent: initialYExtent,
       maxIterations: 100,
-      resolution,
+      resolution: "low",
     });
   };
 
