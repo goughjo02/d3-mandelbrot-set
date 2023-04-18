@@ -69,6 +69,8 @@ function getResolution({
 
 export const MandelbrotSet = () => {
   const [resolution, setResolution] = useState<keyof typeof resolutions>("low");
+  const [xExtent, setXExtent] = useState<[number, number]>(initialXExtent);
+  const [yExtent, setYExtent] = useState<[number, number]>(initialYExtent);
 
   const worker = useWorker(createWorker);
 
@@ -92,8 +94,8 @@ export const MandelbrotSet = () => {
 
   useEffect(() => {
     setNewParameters({
-      xExtent: initialXExtent,
-      yExtent: initialYExtent,
+      newXExtent: initialXExtent,
+      newYExtent: initialYExtent,
       maxIterations: 100,
       resolution,
     });
@@ -105,28 +107,28 @@ export const MandelbrotSet = () => {
 
   const setNewParameters = useCallback(
     async ({
-      xExtent,
-      yExtent,
+      newXExtent,
+      newYExtent,
       maxIterations,
       resolution,
     }: {
-      xExtent: [number, number];
-      yExtent: [number, number];
+      newXExtent: [number, number];
+      newYExtent: [number, number];
       maxIterations: number;
       resolution: keyof typeof resolutions;
     }) => {
       setIsLoadingDataForDisplay(true);
       const { xResolution, yResolution } = getResolution({
-        xExtent,
-        yExtent,
+        xExtent: newXExtent,
+        yExtent: newYExtent,
         width,
         height,
         resolution,
       });
       const { data: newDataForDisplay, dimensions } = await worker
         .generateData({
-          xExtent,
-          yExtent,
+          xExtent: newXExtent,
+          yExtent: newYExtent,
           xResolution,
           yResolution,
           maxIterations,
@@ -152,8 +154,8 @@ export const MandelbrotSet = () => {
 
   const reset = () => {
     setNewParameters({
-      xExtent: initialXExtent,
-      yExtent: initialYExtent,
+      newXExtent: initialXExtent,
+      newYExtent: initialYExtent,
       maxIterations: 100,
       resolution: "low",
     });
@@ -162,20 +164,20 @@ export const MandelbrotSet = () => {
   const defferedDataForDisplay = useDeferredValue(dataForDisplay);
   const zoomOnPoint = useCallback(
     (r: number, i: number) => {
-      const xExtent = extent(dataForDisplay, (d) => d.r) as [number, number];
-      const yExtent = extent(dataForDisplay, (d) => d.i) as [number, number];
       const xRange = xExtent[1] - xExtent[0];
       const yRange = yExtent[1] - yExtent[0];
       const newXExtent: [number, number] = [r - xRange / 4, r + xRange / 4];
       const newYExtent: [number, number] = [i - yRange / 4, i + yRange / 4];
       setNewParameters({
-        xExtent: newXExtent,
-        yExtent: newYExtent,
+        newXExtent,
+        newYExtent,
         maxIterations: 100,
         resolution,
       });
+      setXExtent(newXExtent);
+      setYExtent(newYExtent);
     },
-    [dataForDisplay, resolution, setNewParameters]
+    [resolution, setNewParameters, xExtent, yExtent]
   );
 
   const setNewResolution = useCallback(
@@ -183,13 +185,13 @@ export const MandelbrotSet = () => {
       const newResolution = event.target.value as keyof typeof resolutions;
       setResolution(newResolution);
       setNewParameters({
-        xExtent: initialXExtent,
-        yExtent: initialYExtent,
+        newXExtent: xExtent,
+        newYExtent: yExtent,
         maxIterations: 100,
         resolution: newResolution,
       });
     },
-    [setNewParameters]
+    [setNewParameters, xExtent, yExtent]
   );
 
   return (
