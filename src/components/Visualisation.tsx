@@ -1,7 +1,7 @@
 "use client";
 
 import { select } from "d3";
-import { memo, useEffect, useId, useRef, useState } from "react";
+import { memo, useEffect, useId, useRef } from "react";
 import { DataPoint } from "./types";
 
 type VisualisationProps = {
