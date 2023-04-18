@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@shopify/react-web-worker": "^5.0.11",
     "@types/d3": "^7.4.0",
     "@types/node": "18.15.11",
     "@types/react": "18.0.37",
