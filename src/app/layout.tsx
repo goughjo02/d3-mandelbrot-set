@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     siteName: "Mandelbrot Set (in d3)",
     images: [
       {
-        url: "https://d3-mandelbrot-set.vercel.app/og-image.png",
+        url: "https://d3-mandelbrot-set.vercel.app/og-image-5.png",
       },
     ],
   },
