@@ -40,7 +40,7 @@ const VisualisationCanvas = ({
     if (!ctx) return;
     ctx.clearRect(0, 0, width, height);
     dataForDisplay.forEach((d) => {
-      ctx.fillStyle = d.n === 100 ? "black" : d.color;
+      ctx.fillStyle = d.color;
       ctx.fillRect(d.x, d.y, pixelWidth, pixelHeight);
     });
 

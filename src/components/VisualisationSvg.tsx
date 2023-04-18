@@ -42,9 +42,6 @@ const Visualisation = ({
       .attr("height", pixelHeight)
       .attr("id", (d) => `${d.x}-${d.y}`)
       .attr("fill", (d) => {
-        if (d.n === 100) {
-          return "black";
-        }
         return d.color;
       })
       .on("mouseover", (e, d) => {

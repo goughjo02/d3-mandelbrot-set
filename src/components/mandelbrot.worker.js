@@ -67,13 +67,15 @@ export function generateData(params) {
         const x = xi;
         const y = xj;
         const n = mandelbrot({ breakoutNumber, r, i, maxIterations });
+        const color =
+          n === maxIterations ? "black" : `hsl(${colorScale(n)}, 100%, 50%)`;
         return {
           x: xScale(r),
           y: yScale(i),
           n,
           r,
           i,
-          color: `hsl(${colorScale(n)}, 100%, 50%)`,
+          color,
         };
       })
     )

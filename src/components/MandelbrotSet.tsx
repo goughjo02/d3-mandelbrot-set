@@ -4,6 +4,7 @@ import { createWorkerFactory, useWorker } from "@shopify/react-web-worker";
 import { ScaleLinear, extent } from "d3";
 import {
   ChangeEvent,
+  FormEvent,
   useCallback,
   useDeferredValue,
   useEffect,
@@ -71,6 +72,7 @@ function getResolution({
 }
 
 const initialBreakoutNumber = 4;
+const initialMaxIterations = 100;
 
 export const MandelbrotSet = () => {
   const [renderElement, setRenderElement] = useState<renderElement>("canvas");
@@ -80,6 +82,7 @@ export const MandelbrotSet = () => {
   const [xExtent, setXExtent] = useState<[number, number]>(initialXExtent);
   const [yExtent, setYExtent] = useState<[number, number]>(initialYExtent);
   const [breakoutNumber, setBreakoutNumber] = useState(initialBreakoutNumber);
+  const [maxIterations, setMaxIterations] = useState(initialMaxIterations);
 
   const worker = useWorker(createWorker);
 
@@ -111,7 +114,7 @@ export const MandelbrotSet = () => {
       newBreakoutNumber: breakoutNumber,
       newXExtent: initialXExtent,
       newYExtent: initialYExtent,
-      maxIterations: 100,
+      newMaxIterations: maxIterations,
       resolution,
     });
     return () => {
@@ -125,13 +128,13 @@ export const MandelbrotSet = () => {
       newBreakoutNumber,
       newXExtent,
       newYExtent,
-      maxIterations,
+      newMaxIterations,
       resolution,
     }: {
       newBreakoutNumber: number;
       newXExtent: [number, number];
       newYExtent: [number, number];
-      maxIterations: number;
+      newMaxIterations: number;
       resolution: keyof typeof resolutions;
     }) => {
       setIsLoadingDataForDisplay(true);
@@ -154,7 +157,7 @@ export const MandelbrotSet = () => {
           yExtent: newYExtent,
           xResolution,
           yResolution,
-          maxIterations,
+          maxIterations: newMaxIterations,
           height,
           width,
         })
@@ -183,7 +186,7 @@ export const MandelbrotSet = () => {
       newBreakoutNumber: initialBreakoutNumber,
       newXExtent: initialXExtent,
       newYExtent: initialYExtent,
-      maxIterations: 100,
+      newMaxIterations: initialMaxIterations,
       resolution: initialResolution,
     });
     setBreakoutNumber(initialBreakoutNumber);
@@ -203,13 +206,20 @@ export const MandelbrotSet = () => {
         newBreakoutNumber: breakoutNumber,
         newXExtent,
         newYExtent,
-        maxIterations: 100,
+        newMaxIterations: maxIterations,
         resolution,
       });
       setXExtent(newXExtent);
       setYExtent(newYExtent);
     },
-    [breakoutNumber, resolution, setNewParameters, xExtent, yExtent]
+    [
+      breakoutNumber,
+      maxIterations,
+      resolution,
+      setNewParameters,
+      xExtent,
+      yExtent,
+    ]
   );
 
   const setNewResolution = useCallback(
@@ -220,11 +230,11 @@ export const MandelbrotSet = () => {
         newBreakoutNumber: breakoutNumber,
         newXExtent: xExtent,
         newYExtent: yExtent,
-        maxIterations: 100,
+        newMaxIterations: maxIterations,
         resolution: newResolution,
       });
     },
-    [breakoutNumber, setNewParameters, xExtent, yExtent]
+    [breakoutNumber, maxIterations, setNewParameters, xExtent, yExtent]
   );
 
   const setNewRenderElement = useCallback(
@@ -235,26 +245,66 @@ export const MandelbrotSet = () => {
         newBreakoutNumber: breakoutNumber,
         newXExtent: xExtent,
         newYExtent: yExtent,
-        maxIterations: 100,
+        newMaxIterations: maxIterations,
+        resolution,
+      });
+    },
+    [
+      breakoutNumber,
+      maxIterations,
+      resolution,
+      setNewParameters,
+      xExtent,
+      yExtent,
+    ]
+  );
+
+  const setNewBreakoutNumber = useCallback(function (
+    event: ChangeEvent<HTMLInputElement>
+  ) {
+    const newBreakoutNumber = parseFloat(event.currentTarget.value);
+    if (!isNaN(newBreakoutNumber)) {
+      setBreakoutNumber(newBreakoutNumber);
+    } else {
+      setBreakoutNumber(0);
+    }
+  },
+  []);
+
+  const submitNewBreakoutNumber = useCallback(
+    function (event: FormEvent<HTMLFormElement>) {
+      event.preventDefault();
+      setNewParameters({
+        newBreakoutNumber: breakoutNumber,
+        newXExtent: xExtent,
+        newYExtent: yExtent,
+        newMaxIterations: maxIterations,
+        resolution,
+      });
+    },
+    [
+      breakoutNumber,
+      maxIterations,
+      resolution,
+      setNewParameters,
+      xExtent,
+      yExtent,
+    ]
+  );
+
+  const setNewMaxIterations = useCallback(
+    function (event: ChangeEvent<HTMLInputElement>) {
+      const newMaxIterations = parseInt(event.target.value);
+      setMaxIterations(newMaxIterations);
+      setNewParameters({
+        newBreakoutNumber: breakoutNumber,
+        newXExtent: xExtent,
+        newYExtent: yExtent,
+        newMaxIterations,
         resolution,
       });
     },
     [breakoutNumber, resolution, setNewParameters, xExtent, yExtent]
-  );
-
-  const setNewBreakoutNumber = useCallback(
-    function (event: ChangeEvent<HTMLInputElement>) {
-      const newBreakoutNumber = parseInt(event.target.value);
-      setBreakoutNumber(newBreakoutNumber);
-      setNewParameters({
-        newBreakoutNumber,
-        newXExtent: xExtent,
-        newYExtent: yExtent,
-        maxIterations: 100,
-        resolution,
-      });
-    },
-    [resolution, setNewParameters, xExtent, yExtent]
   );
 
   return (
@@ -320,12 +370,25 @@ export const MandelbrotSet = () => {
           <option value="canvas">Canvas</option>
         </select>
         {/* select breakout number */}
-        <label className="mx-2 my-1">Breakout Number</label>
+        <form className="mx-2 my-1" onSubmit={submitNewBreakoutNumber}>
+          <label className="mx-2 my-1">Breakout Number</label>
+          <input
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
+            onChange={setNewBreakoutNumber}
+            type="number"
+            value={breakoutNumber}
+          />
+          <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1">
+            Set
+          </button>
+        </form>
+        {/* select max iterations */}
+        <label className="mx-2 my-1">Max Iterations</label>
         <input
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
-          onChange={setNewBreakoutNumber}
+          onChange={setNewMaxIterations}
           type="number"
-          value={breakoutNumber}
+          value={maxIterations}
         />
       </div>
       {showInfoMessage && (
