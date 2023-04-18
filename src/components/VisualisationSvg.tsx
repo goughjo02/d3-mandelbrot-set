@@ -4,7 +4,7 @@ import { select } from "d3";
 import { memo, useEffect, useId, useRef } from "react";
 import { DataPoint } from "./types";
 
-type VisualisationProps = {
+type VisualisationSvgProps = {
   dataForDisplay: DataPoint[];
   height: number;
   width: number;
@@ -27,7 +27,7 @@ const Visualisation = ({
   pixelWidth,
   showTooltip,
   zoomOnPoint,
-}: VisualisationProps) => {
+}: VisualisationSvgProps) => {
   const tooltipId = useId();
   const ref = useRef<SVGSVGElement>(null);
 

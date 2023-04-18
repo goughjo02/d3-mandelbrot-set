@@ -1,16 +1,16 @@
 "use client";
 
 import { createWorkerFactory, useWorker } from "@shopify/react-web-worker";
-import { extent } from "d3";
+import { ScaleLinear, extent } from "d3";
 import {
   ChangeEvent,
-  Suspense,
   useCallback,
   useDeferredValue,
   useEffect,
   useState,
 } from "react";
-import Visualisation from "./Visualisation";
+import VisualisationSvg from "./VisualisationSvg";
+import VisualisationCanvas from "./VisualisationCanvas";
 
 const createWorker = createWorkerFactory(() => import("./mandelbrot.worker"));
 
@@ -28,12 +28,13 @@ const initialYExtent: [number, number] = [-1.2, 1.2];
 // const yResolution = 0.01;
 
 const resolutions = {
-  low: 100,
-  medium: 200,
-  high: 500,
-  "very high": 700,
-  "too high": 1000,
-  "way too high": 1500,
+  "100": 100,
+  "200": 200,
+  "500": 500,
+  "700": 700,
+  "1000": 1000,
+  "1500": 1500,
+  "2000": 2000,
 } as const;
 
 const seenInfoMessageKey = "seenInfoMessage";
@@ -46,6 +47,8 @@ interface DataPoint {
   i: number;
   color: string;
 }
+
+type renderElement = "svg" | "canvas";
 
 function getResolution({
   xExtent,
@@ -68,7 +71,10 @@ function getResolution({
 }
 
 export const MandelbrotSet = () => {
-  const [resolution, setResolution] = useState<keyof typeof resolutions>("low");
+  const [renderElement, setRenderElement] = useState<renderElement>("svg");
+  const initialResolution = renderElement === "svg" ? "100" : "1000";
+  const [resolution, setResolution] =
+    useState<keyof typeof resolutions>(initialResolution);
   const [xExtent, setXExtent] = useState<[number, number]>(initialXExtent);
   const [yExtent, setYExtent] = useState<[number, number]>(initialYExtent);
 
@@ -91,6 +97,11 @@ export const MandelbrotSet = () => {
   const [isMounted, setIsMounted] = useState(true);
 
   const [isLoadingDataForDisplay, setIsLoadingDataForDisplay] = useState(false);
+
+  const [scales, setScales] = useState<{
+    xScale: ScaleLinear<number, number, never>;
+    yScale: ScaleLinear<number, number, never>;
+  } | null>(null);
 
   useEffect(() => {
     setNewParameters({
@@ -125,7 +136,12 @@ export const MandelbrotSet = () => {
         height,
         resolution,
       });
-      const { data: newDataForDisplay, dimensions } = await worker
+      const {
+        data: newDataForDisplay,
+        dimensions,
+        xScale,
+        yScale,
+      } = await worker
         .generateData({
           xExtent: newXExtent,
           yExtent: newYExtent,
@@ -137,12 +153,15 @@ export const MandelbrotSet = () => {
         })
         .catch((e) => {
           console.error(e);
+          throw e;
           // setIsLoadingDataForDisplay(false);
-          return { data: [], dimensions: { width: 0, height: 0 } };
+          // return { data: [], dimensions: { width: 0, height: 0 } };
         });
 
       // check we are still mounted
       if (!isMounted) return;
+
+      setScales({ xScale, yScale });
 
       setIsLoadingDataForDisplay(false);
       setDataForDisplay(newDataForDisplay);
@@ -157,8 +176,11 @@ export const MandelbrotSet = () => {
       newXExtent: initialXExtent,
       newYExtent: initialYExtent,
       maxIterations: 100,
-      resolution: "low",
+      resolution: initialResolution,
     });
+    setXExtent(initialXExtent);
+    setYExtent(initialYExtent);
+    setResolution(initialResolution);
   };
 
   const defferedDataForDisplay = useDeferredValue(dataForDisplay);
@@ -194,10 +216,24 @@ export const MandelbrotSet = () => {
     [setNewParameters, xExtent, yExtent]
   );
 
+  const setNewRenderElement = useCallback(
+    function (event: ChangeEvent<HTMLSelectElement>) {
+      const newRenderElement = event.target.value as renderElement;
+      setRenderElement(newRenderElement);
+      setNewParameters({
+        newXExtent: xExtent,
+        newYExtent: yExtent,
+        maxIterations: 100,
+        resolution,
+      });
+    },
+    [resolution, setNewParameters, xExtent, yExtent]
+  );
+
   return (
     <div>
-      <Suspense fallback={<div>Loading svg...</div>}>
-        <Visualisation
+      {renderElement === "svg" ? (
+        <VisualisationSvg
           dataForDisplay={defferedDataForDisplay}
           height={height}
           width={width}
@@ -206,7 +242,18 @@ export const MandelbrotSet = () => {
           showTooltip={false}
           zoomOnPoint={zoomOnPoint}
         />
-      </Suspense>
+      ) : (
+        <VisualisationCanvas
+          dataForDisplay={defferedDataForDisplay}
+          height={height}
+          width={width}
+          pixelHeight={height / dimensions?.height}
+          pixelWidth={width / dimensions?.width}
+          scales={scales}
+          showTooltip={false}
+          zoomOnPoint={zoomOnPoint}
+        />
+      )}
       {/* when is loading show an overlay over whole screen with greyed out slightly transparent background and an animated spinner in the center. do not allow click events through the overlay */}
       {isLoadingDataForDisplay && (
         <>
@@ -228,12 +275,23 @@ export const MandelbrotSet = () => {
         <select
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
           onChange={setNewResolution}
+          value={resolution}
         >
           {Object.keys(resolutions).map((resolution) => (
             <option key={resolution} value={resolution}>
               {resolution}
             </option>
           ))}
+        </select>
+        {/* select render element */}
+        <label className="mx-2 my-1">Render Element</label>
+        <select
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
+          onChange={setNewRenderElement}
+          value={renderElement}
+        >
+          <option value="svg">SVG</option>
+          <option value="canvas">Canvas</option>
         </select>
       </div>
       {showInfoMessage && (
