@@ -8,6 +8,12 @@ I tried to visualise the Mandelbrot set using d3.js. It is all client side so it
 
 ![Sample Two](/public/og-image.png)
 
+![Sample Three](/public/og-image-3.png)
+
+![Sample Four](/public/og-image-4.png)
+
+![Sample Five](/public/og-image-5.png)
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
