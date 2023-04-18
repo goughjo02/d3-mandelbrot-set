@@ -239,7 +239,7 @@ export const MandelbrotSet = () => {
           width={width}
           pixelHeight={height / dimensions?.height}
           pixelWidth={width / dimensions?.width}
-          showTooltip={false}
+          showTooltip
           zoomOnPoint={zoomOnPoint}
         />
       ) : (
@@ -250,7 +250,6 @@ export const MandelbrotSet = () => {
           pixelHeight={height / dimensions?.height}
           pixelWidth={width / dimensions?.width}
           scales={scales}
-          showTooltip={false}
           zoomOnPoint={zoomOnPoint}
         />
       )}
