@@ -2,7 +2,6 @@
 
 import { createWorkerFactory, useWorker } from "@shopify/react-web-worker";
 import { extent } from "d3";
-import dynamic from "next/dynamic";
 import {
   ChangeEvent,
   Suspense,
@@ -96,8 +95,6 @@ export const MandelbrotSet = () => {
       xExtent: initialXExtent,
       yExtent: initialYExtent,
       maxIterations: 100,
-      height,
-      width,
       resolution,
     });
     return () => {
@@ -111,21 +108,17 @@ export const MandelbrotSet = () => {
       xExtent,
       yExtent,
       maxIterations,
-      height,
-      width,
       resolution,
     }: {
       xExtent: [number, number];
       yExtent: [number, number];
       maxIterations: number;
-      height: number;
-      width: number;
       resolution: keyof typeof resolutions;
     }) => {
       setIsLoadingDataForDisplay(true);
       const { xResolution, yResolution } = getResolution({
-        xExtent: initialXExtent,
-        yExtent: initialYExtent,
+        xExtent,
+        yExtent,
         width,
         height,
         resolution,
@@ -154,7 +147,7 @@ export const MandelbrotSet = () => {
       setDimensions(dimensions);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [worker]
+    [worker, height, width]
   );
 
   const reset = () => {
@@ -162,8 +155,6 @@ export const MandelbrotSet = () => {
       xExtent: initialXExtent,
       yExtent: initialYExtent,
       maxIterations: 100,
-      height,
-      width,
       resolution,
     });
   };
@@ -171,8 +162,8 @@ export const MandelbrotSet = () => {
   const defferedDataForDisplay = useDeferredValue(dataForDisplay);
   const zoomOnPoint = useCallback(
     (r: number, i: number) => {
-      const xExtent = extent(dataForDisplay, (d) => d.x) as [number, number];
-      const yExtent = extent(dataForDisplay, (d) => d.y) as [number, number];
+      const xExtent = extent(dataForDisplay, (d) => d.r) as [number, number];
+      const yExtent = extent(dataForDisplay, (d) => d.i) as [number, number];
       const xRange = xExtent[1] - xExtent[0];
       const yRange = yExtent[1] - yExtent[0];
       const newXExtent: [number, number] = [r - xRange / 4, r + xRange / 4];
@@ -181,12 +172,10 @@ export const MandelbrotSet = () => {
         xExtent: newXExtent,
         yExtent: newYExtent,
         maxIterations: 100,
-        height,
-        width,
         resolution,
       });
     },
-    [dataForDisplay, height, resolution, setNewParameters, width]
+    [dataForDisplay, resolution, setNewParameters]
   );
 
   const setNewResolution = useCallback(
@@ -197,12 +186,10 @@ export const MandelbrotSet = () => {
         xExtent: initialXExtent,
         yExtent: initialYExtent,
         maxIterations: 100,
-        height,
-        width,
         resolution: newResolution,
       });
     },
-    [height, setNewParameters, width]
+    [setNewParameters]
   );
 
   return (
