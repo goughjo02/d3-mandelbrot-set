@@ -11,8 +11,7 @@ import {
   useEffect,
   useState,
 } from "react";
-
-const Visualisation = dynamic(() => import("./Visualisation"), { ssr: false });
+import Visualisation from "./Visualisation";
 
 const createWorker = createWorkerFactory(() => import("./mandelbrot.worker"));
 
