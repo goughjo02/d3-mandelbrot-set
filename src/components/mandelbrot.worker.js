@@ -12,6 +12,7 @@ import { range, scaleLinear } from "d3";
  * @param {number} c.r
  * @param {number} c.i
  * @param {number} c.maxIterations
+ * @param {number} c.breakoutNumber
  * @returns {number}
  */
 const mandelbrot = (c) => {
@@ -21,7 +22,7 @@ const mandelbrot = (c) => {
     const x = z.x * z.x - z.y * z.y + c.r;
     const y = 2 * z.x * z.y + c.i;
     z = { x, y };
-    if (z.x * z.x + z.y * z.y > 4) {
+    if (z.x * z.x + z.y * z.y > c.breakoutNumber) {
       break;
     }
     n++;
@@ -39,9 +40,11 @@ const mandelbrot = (c) => {
  * @param {number} params.height
  * @param {number} params.width
  * @param {number} params.maxIterations
+ * @param {number} params.breakoutNumber
  */
 export function generateData(params) {
   const {
+    breakoutNumber,
     xExtent,
     yExtent,
     xResolution,
@@ -63,7 +66,7 @@ export function generateData(params) {
       yPoints.map((i, xj) => {
         const x = xi;
         const y = xj;
-        const n = mandelbrot({ r, i, maxIterations });
+        const n = mandelbrot({ breakoutNumber, r, i, maxIterations });
         return {
           x: xScale(r),
           y: yScale(i),

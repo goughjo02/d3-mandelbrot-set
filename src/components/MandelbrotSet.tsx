@@ -70,6 +70,8 @@ function getResolution({
   return { xResolution, yResolution };
 }
 
+const initialBreakoutNumber = 4;
+
 export const MandelbrotSet = () => {
   const [renderElement, setRenderElement] = useState<renderElement>("canvas");
   const initialResolution = renderElement === "svg" ? "100" : "1500";
@@ -77,6 +79,7 @@ export const MandelbrotSet = () => {
     useState<keyof typeof resolutions>(initialResolution);
   const [xExtent, setXExtent] = useState<[number, number]>(initialXExtent);
   const [yExtent, setYExtent] = useState<[number, number]>(initialYExtent);
+  const [breakoutNumber, setBreakoutNumber] = useState(initialBreakoutNumber);
 
   const worker = useWorker(createWorker);
 
@@ -105,6 +108,7 @@ export const MandelbrotSet = () => {
 
   useEffect(() => {
     setNewParameters({
+      newBreakoutNumber: breakoutNumber,
       newXExtent: initialXExtent,
       newYExtent: initialYExtent,
       maxIterations: 100,
@@ -118,11 +122,13 @@ export const MandelbrotSet = () => {
 
   const setNewParameters = useCallback(
     async ({
+      newBreakoutNumber,
       newXExtent,
       newYExtent,
       maxIterations,
       resolution,
     }: {
+      newBreakoutNumber: number;
       newXExtent: [number, number];
       newYExtent: [number, number];
       maxIterations: number;
@@ -143,6 +149,7 @@ export const MandelbrotSet = () => {
         yScale,
       } = await worker
         .generateData({
+          breakoutNumber: newBreakoutNumber,
           xExtent: newXExtent,
           yExtent: newYExtent,
           xResolution,
@@ -173,11 +180,13 @@ export const MandelbrotSet = () => {
 
   const reset = () => {
     setNewParameters({
+      newBreakoutNumber: initialBreakoutNumber,
       newXExtent: initialXExtent,
       newYExtent: initialYExtent,
       maxIterations: 100,
       resolution: initialResolution,
     });
+    setBreakoutNumber(initialBreakoutNumber);
     setXExtent(initialXExtent);
     setYExtent(initialYExtent);
     setResolution(initialResolution);
@@ -191,6 +200,7 @@ export const MandelbrotSet = () => {
       const newXExtent: [number, number] = [r - xRange / 4, r + xRange / 4];
       const newYExtent: [number, number] = [i - yRange / 4, i + yRange / 4];
       setNewParameters({
+        newBreakoutNumber: breakoutNumber,
         newXExtent,
         newYExtent,
         maxIterations: 100,
@@ -199,7 +209,7 @@ export const MandelbrotSet = () => {
       setXExtent(newXExtent);
       setYExtent(newYExtent);
     },
-    [resolution, setNewParameters, xExtent, yExtent]
+    [breakoutNumber, resolution, setNewParameters, xExtent, yExtent]
   );
 
   const setNewResolution = useCallback(
@@ -207,13 +217,14 @@ export const MandelbrotSet = () => {
       const newResolution = event.target.value as keyof typeof resolutions;
       setResolution(newResolution);
       setNewParameters({
+        newBreakoutNumber: breakoutNumber,
         newXExtent: xExtent,
         newYExtent: yExtent,
         maxIterations: 100,
         resolution: newResolution,
       });
     },
-    [setNewParameters, xExtent, yExtent]
+    [breakoutNumber, setNewParameters, xExtent, yExtent]
   );
 
   const setNewRenderElement = useCallback(
@@ -221,6 +232,22 @@ export const MandelbrotSet = () => {
       const newRenderElement = event.target.value as renderElement;
       setRenderElement(newRenderElement);
       setNewParameters({
+        newBreakoutNumber: breakoutNumber,
+        newXExtent: xExtent,
+        newYExtent: yExtent,
+        maxIterations: 100,
+        resolution,
+      });
+    },
+    [breakoutNumber, resolution, setNewParameters, xExtent, yExtent]
+  );
+
+  const setNewBreakoutNumber = useCallback(
+    function (event: ChangeEvent<HTMLInputElement>) {
+      const newBreakoutNumber = parseInt(event.target.value);
+      setBreakoutNumber(newBreakoutNumber);
+      setNewParameters({
+        newBreakoutNumber,
         newXExtent: xExtent,
         newYExtent: yExtent,
         maxIterations: 100,
@@ -292,6 +319,14 @@ export const MandelbrotSet = () => {
           <option value="svg">SVG</option>
           <option value="canvas">Canvas</option>
         </select>
+        {/* select breakout number */}
+        <label className="mx-2 my-1">Breakout Number</label>
+        <input
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 my-1"
+          onChange={setNewBreakoutNumber}
+          type="number"
+          value={breakoutNumber}
+        />
       </div>
       {showInfoMessage && (
         <div className="absolute top-0 right-0 h-full w-full flex justify-center items-center">
