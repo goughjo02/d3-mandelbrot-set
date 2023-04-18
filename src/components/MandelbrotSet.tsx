@@ -71,8 +71,8 @@ function getResolution({
 }
 
 export const MandelbrotSet = () => {
-  const [renderElement, setRenderElement] = useState<renderElement>("svg");
-  const initialResolution = renderElement === "svg" ? "100" : "1000";
+  const [renderElement, setRenderElement] = useState<renderElement>("canvas");
+  const initialResolution = renderElement === "svg" ? "100" : "1500";
   const [resolution, setResolution] =
     useState<keyof typeof resolutions>(initialResolution);
   const [xExtent, setXExtent] = useState<[number, number]>(initialXExtent);
