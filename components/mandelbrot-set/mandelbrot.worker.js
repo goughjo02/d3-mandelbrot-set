@@ -62,10 +62,10 @@ export function generateData(params) {
   const colorScale = scaleLinear().domain([0, 100]).range([0, 360]);
 
   const newDataForDisplay = xPoints
-    .map((r, xi) =>
-      yPoints.map((i, xj) => {
-        const x = xi;
-        const y = xj;
+    .map((r) =>
+      yPoints.map((i) => {
+        // const x = xi;
+        // const y = xj;
         const n = mandelbrot({ breakoutNumber, r, i, maxIterations });
         const color =
           n === maxIterations ? "black" : `hsl(${colorScale(n)}, 100%, 50%)`;

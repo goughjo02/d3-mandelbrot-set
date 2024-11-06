@@ -1,6 +1,6 @@
 "use client";
 
-import { ScaleLinear, select } from "d3";
+import { ScaleLinear } from "d3";
 import { memo, useCallback, useEffect, useId, useRef } from "react";
 import { DataPoint } from "./types";
 

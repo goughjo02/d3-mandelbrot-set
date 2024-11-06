@@ -1,7 +1,7 @@
 "use client";
 
 import { createWorkerFactory, useWorker } from "@shopify/react-web-worker";
-import { ScaleLinear, extent } from "d3";
+import { ScaleLinear } from "d3";
 import {
   ChangeEvent,
   FormEvent,
@@ -10,8 +10,8 @@ import {
   useEffect,
   useState,
 } from "react";
-import VisualisationSvg from "./VisualisationSvg";
-import VisualisationCanvas from "./VisualisationCanvas";
+import VisualisationSvg from "./visualisation-svg";
+import VisualisationCanvas from "./visualisation-canvas";
 
 const createWorker = createWorkerFactory(() => import("./mandelbrot.worker"));
 
@@ -510,5 +510,3 @@ export const MandelbrotSet = () => {
     </div>
   );
 };
-
-export default MandelbrotSet;

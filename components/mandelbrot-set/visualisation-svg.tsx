@@ -55,7 +55,7 @@ const Visualisation = ({
         const imaginary = Math.round(d.i * 10) / 10;
         tooltip.innerHTML = `${real}${imaginary < 0 ? "" : " + "}${imaginary}i`;
       })
-      .on("mouseout", (e, d) => {
+      .on("mouseout", () => {
         const tooltip = document.getElementById(tooltipId);
         if (!tooltip) return;
         tooltip.style.display = "none";
